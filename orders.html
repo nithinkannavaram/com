@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ohm Shop - My Orders</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-mode">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fa-solid fa-store"></i> <a href="index.html" style="color: inherit; text-decoration: none;">Ohm Shop</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="products-section" style="padding-top: 4rem;">
+        <h2 class="section-title">My Orders</h2>
+        <div id="ordersContainer" style="max-width: 800px; margin: 0 auto;">
+            <p id="loadingOrders" class="text-center text-muted">Loading your amazing orders...</p>
+        </div>
+    </main>
+
+    <script type="module" src="js/orders.js"></script>
+</body>
+</html>
