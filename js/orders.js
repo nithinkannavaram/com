@@ -1,6 +1,6 @@
 import { db, auth } from '../firebase.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
     const ordersContainer = document.getElementById('ordersContainer');
@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         console.log(user);
         if (!user) {
-            if (loadingOrders) loadingOrders.style.display = 'none';
-            ordersContainer.innerHTML = '<p class="text-center text-muted">Please login to view your orders.</p>';
+            window.location.href = 'index.html?login=true';
         } else {
             try {
                 const q = query(collection(db, "orders"), where("userId", "==", user.uid));
@@ -130,7 +129,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    if (currentTheme !== 'dark') document.body.classList.remove('dark-mode');
 });

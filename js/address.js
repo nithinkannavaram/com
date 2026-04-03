@@ -1,6 +1,6 @@
 import { db, auth } from '../firebase.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { collection, query, getDocs, addDoc, deleteDoc, doc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, getDocs, addDoc, deleteDoc, doc, serverTimestamp, orderBy } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
@@ -16,11 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const maxAddressLimitMsg = document.getElementById('maxAddressLimitMsg');
     const addressForm = document.getElementById('addressForm');
     const addressError = document.getElementById('addressError');
+    const loader = document.getElementById('loadingIndicator');
 
     // Check auth status
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.href = 'index.html?login=true';
         } else {
             currentUser = user;
             await loadAddresses();
@@ -29,25 +30,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadAddresses() {
         if (!currentUser) return;
+        if (loader) loader.style.display = 'block';
         try {
             const q = query(collection(db, 'users', currentUser.uid, 'addresses'), orderBy('timestamp', 'desc'));
             const snapshot = await getDocs(q);
             addresses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
             renderAddresses();
         } catch (err) {
             console.error("Error fetching addresses:", err);
             // Fallback if index missing
-            if(err.message.includes('index')) {
-                const snapshot = await getDocs(collection(db, 'users', currentUser.uid, 'addresses'));
-                addresses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                addresses.sort((a,b) => {
-                    const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
-                    const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
-                    return tb - ta;
-                });
-                renderAddresses();
+            if (err.message.includes('index')) {
+                try {
+                    const snapshot = await getDocs(collection(db, 'users', currentUser.uid, 'addresses'));
+                    addresses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    addresses.sort((a, b) => {
+                        const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+                        const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+                        return tb - ta;
+                    });
+                    renderAddresses();
+                } catch (innerErr) {
+                    console.error("Final fallback error:", innerErr);
+                }
             }
+        } finally {
+            if (loader) loader.style.display = 'none';
         }
     }
 
@@ -212,8 +219,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'payment.html';
         }
     });
-    
-    // Theme initialization
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    if (currentTheme !== 'dark') document.body.classList.remove('dark-mode');
 });

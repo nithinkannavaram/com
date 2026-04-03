@@ -1,6 +1,17 @@
 import { db, auth } from '../firebase.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { doc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs } from "firebase/firestore";
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    updateProfile, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    onAuthStateChanged, 
+    signOut,
+    RecaptchaVerifier,
+    signInWithPhoneNumber
+} from "firebase/auth";
+import { doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
@@ -33,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check auth status
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.href = 'index.html?login=true';
         } else {
             currentUser = user;
             // Fetch selected address to include with the order
@@ -122,7 +133,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Theme initialization
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    if (currentTheme !== 'dark') document.body.classList.remove('dark-mode');
 });
