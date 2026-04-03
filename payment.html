@@ -61,7 +61,23 @@
             <div class="product-card" style="flex: 1; min-width: 300px; padding: 2rem; background: var(--surface-color);">
                 <h3 class="product-title" style="margin-bottom: 1.5rem;">Order Summary</h3>
                 <div id="orderSummaryContainer"></div>
-                <div style="border-top: 1px solid var(--border-color); margin-top: 1.5rem; padding-top: 1rem; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.25rem;">
+                
+                <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="couponInput" placeholder="Enter coupon code" 
+                               style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); outline: none;">
+                        <button type="button" id="applyCouponBtn" class="btn primary-btn" style="padding: 0.75rem 1.5rem;">Apply</button>
+                    </div>
+                    <div id="couponMessage" style="margin-top: 0.5rem; font-size: 0.85rem;"></div>
+                    <a href="coupons.html" target="_blank" style="display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--primary-color); text-decoration: none;">View available coupons <i class="fa-solid fa-external-link"></i></a>
+                </div>
+
+                <div id="discountRow" style="display: none; justify-content: space-between; margin-top: 1rem; color: #27ae60; font-weight: 500;">
+                    <span>Discount:</span>
+                    <span id="discountAmount">-₹0.00</span>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); margin-top: 1rem; padding-top: 1rem; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.25rem;">
                     <span>Total:</span>
                     <span id="finalTotal">₹0.00</span>
                 </div>

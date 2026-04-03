@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render Order Summary
     let totalCost = 0;
+    let discount = 0;
+    let appliedCoupon = null;
     const summaryContainer = document.getElementById('orderSummaryContainer');
     cart.forEach(item => {
         totalCost += item.price * item.quantity;
@@ -40,6 +42,66 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryContainer.appendChild(div);
     });
     document.getElementById('finalTotal').innerText = `₹${totalCost.toFixed(2)}`;
+
+    // Coupon Logic
+    const couponInput = document.getElementById('couponInput');
+    const applyBtn = document.getElementById('applyCouponBtn');
+    const couponMsg = document.getElementById('couponMessage');
+    const discountRow = document.getElementById('discountRow');
+    const discountAmt = document.getElementById('discountAmount');
+    const finalTotalEl = document.getElementById('finalTotal');
+
+    applyBtn.addEventListener('click', () => {
+        const code = couponInput.value.trim().toUpperCase();
+        if (!code) {
+            couponMsg.innerText = "Please enter a coupon code.";
+            couponMsg.style.color = "#e74c3c";
+            return;
+        }
+
+        // Coupon rules from coupons.html
+        // NEW10OFF: 10% OFF on > ₹999
+        // SMART150: ₹150 OFF on > ₹1200
+        // FREESHIP: Flat ₹50 OFF (Assuming shipping was roughly 50)
+
+        let tempDiscount = 0;
+        let isValid = false;
+
+        if (code === 'NEW10OFF') {
+            if (totalCost > 999) {
+                tempDiscount = totalCost * 0.1;
+                isValid = true;
+            } else {
+                couponMsg.innerText = "Order value must be above ₹999 for this coupon.";
+            }
+        } else if (code === 'SMART150') {
+            if (totalCost > 1200) {
+                tempDiscount = 150;
+                isValid = true;
+            } else {
+                couponMsg.innerText = "Order value must be above ₹1200 for this coupon.";
+            }
+        } else if (code === 'FREESHIP') {
+            tempDiscount = 50; // Mock shipping discount
+            isValid = true;
+        } else {
+            couponMsg.innerText = "Invalid coupon code.";
+        }
+
+        if (isValid) {
+            discount = tempDiscount;
+            appliedCoupon = code;
+            discountRow.style.display = 'flex';
+            discountAmt.innerText = `-₹${discount.toFixed(2)}`;
+            finalTotalEl.innerText = `₹${(totalCost - discount).toFixed(2)}`;
+            couponMsg.innerText = `Coupon '${code}' applied successfully!`;
+            couponMsg.style.color = "#27ae60";
+            applyBtn.disabled = true;
+            couponInput.disabled = true;
+        } else {
+            couponMsg.style.color = "#e74c3c";
+        }
+    });
 
     // Check auth status
     onAuthStateChanged(auth, async (user) => {
@@ -98,7 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const orderData = {
             userId: currentUser.uid,
             products: cart,
-            total: totalCost,
+            subtotal: totalCost,
+            discount: discount,
+            coupon: appliedCoupon,
+            total: totalCost - discount,
             address: savedAddress,
             payment: paymentMethod,
             status: 'Placed',

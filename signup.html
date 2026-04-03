@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup - KN SHOP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-page-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, #1a1a2e, #16213e);
+            padding: 20px;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUpFade 0.6s ease-out;
+        }
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-logo img {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+        .auth-logo h2 {
+            font-family: 'Playfair Display', serif;
+            color: #d4af37;
+            font-size: 1.8rem;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus {
+            border-color: #d4af37;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+        .auth-submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #d4af37, #f1c40f);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        .auth-submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .auth-footer a {
+            color: #d4af37;
+            text-decoration: none;
+        }
+        .error-msg {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            display: none;
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+    </style>
+    <script>
+        // Redirect if already logged in
+        if (localStorage.getItem('user')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="auth-page-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="ganesha-logo.png" alt="KN SHOP">
+                <h2>Create Account</h2>
+            </div>
+            
+            <div id="signupError" class="error-msg"></div>
+
+            <form id="signupPageForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-submit-btn" id="signupSubmitBtn">
+                    Sign Up Now
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="login.html">Sign In Here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"
+        }
+    }
+    </script>
+    <script type="module" src="js/auth-pages.js"></script>
+</body>
+</html>

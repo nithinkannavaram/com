@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KN SHOP - My Wishlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                <span class="logo-text">KN SHOP</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="orders.html">Orders</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="products-section" style="padding-top: 6rem; min-height: 80vh;">
+        <div class="nav-container">
+            <h2 class="section-title">My Wishlist</h2>
+            <p class="text-center text-muted" style="margin-top: -1.5rem; margin-bottom: 3rem;">Items you've loved and saved for later.</p>
+            
+            <div id="wishlistContainer" class="wishlist-grid">
+                <!-- Wishlist items will be rendered here -->
+            </div>
+            
+            <div id="emptyWishlist" style="display: none; text-align: center; margin-top: 4rem;">
+                <i class="fa-regular fa-heart" style="font-size: 4rem; color: var(--border-color); margin-bottom: 1.5rem;"></i>
+                <h3>Your wishlist is empty</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Explore our products and save your favorites!</p>
+                <a href="index.html" class="btn primary-btn">Go Shopping</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="logo">
+                    <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                    <span class="logo-text">KN Shop</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="js/wishlist.js"></script>
+</body>
+</html>

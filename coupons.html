@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KN SHOP - My Coupons</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .coupon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .coupon-card {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            transition: var(--transition);
+            position: relative;
+        }
+        .coupon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        .coupon-left {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+        }
+        .coupon-discount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .coupon-off {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.2rem;
+        }
+        .coupon-right {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .coupon-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+        .coupon-code-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            background: var(--surface-color);
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1px dashed var(--primary-color);
+            margin-top: 0.5rem;
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .coupon-code-box:hover {
+            background: rgba(140, 99, 57, 0.1);
+        }
+        .coupon-expiry {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+        }
+        .copy-hint {
+            font-size: 0.65rem;
+            color: #27ae60;
+            margin-top: 0.2rem;
+            font-weight: 600;
+            display: none;
+            position: absolute;
+            bottom: 0.5rem;
+            right: 1.5rem;
+        }
+        .coupon-card.copied .copy-hint {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                <span class="logo-text">KN SHOP</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="orders.html">Orders</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="products-section" style="padding-top: 6rem; min-height: 80vh;">
+        <div class="nav-container">
+            <h2 class="section-title">My Exclusive Coupons</h2>
+            <p class="text-center text-muted" style="margin-top: -1.5rem; margin-bottom: 3rem;">Grab the best deals and apply them at checkout.</p>
+            
+            <div class="coupon-grid" id="couponGrid">
+                <div class="coupon-card">
+                    <div class="coupon-left">
+                        <div class="coupon-discount">10%</div>
+                        <div class="coupon-off">OFF</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">New Member Treat</div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Valid on orders above ₹999 across all categories.</p>
+                        <div class="coupon-code-box" onclick="copyCode('NEW10OFF', this)">
+                            NEW10OFF <i class="fa-regular fa-copy"></i>
+                        </div>
+                        <div class="copy-hint">Copied!</div>
+                        <div class="coupon-expiry">Expires: Dec 2026</div>
+                    </div>
+                </div>
+
+                <div class="coupon-card">
+                    <div class="coupon-left">
+                        <div class="coupon-discount">₹150</div>
+                        <div class="coupon-off">OFF</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">Smart Shopper</div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Get a quick refund or flat discount on ₹1200+ cart.</p>
+                        <div class="coupon-code-box" onclick="copyCode('SMART150', this)">
+                            SMART150 <i class="fa-regular fa-copy"></i>
+                        </div>
+                        <div class="copy-hint">Copied!</div>
+                        <div class="coupon-expiry">Expires: Aug 2026</div>
+                    </div>
+                </div>
+
+                <div class="coupon-card">
+                    <div class="coupon-left">
+                        <div class="coupon-discount">FREE</div>
+                        <div class="coupon-off">SHIP</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">Weekend Express</div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Zero delivery charges on any prepaid order.</p>
+                        <div class="coupon-code-box" onclick="copyCode('FREESHIP', this)">
+                            FREESHIP <i class="fa-regular fa-copy"></i>
+                        </div>
+                        <div class="copy-hint">Copied!</div>
+                        <div class="coupon-expiry">Expires: Jun 2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function copyCode(code, el) {
+            navigator.clipboard.writeText(code).then(() => {
+                const card = el.closest('.coupon-card');
+                card.classList.add('copied');
+                setTimeout(() => card.classList.remove('copied'), 2000);
+            });
+        }
+    </script>
+</body>
+</html>

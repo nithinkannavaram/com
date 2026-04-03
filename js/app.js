@@ -7,9 +7,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     onAuthStateChanged,
-    signOut,
-    RecaptchaVerifier,
-    signInWithPhoneNumber
+    signOut
 } from "firebase/auth";
 
 console.log('Firebase initialized, loading products...');
@@ -17,116 +15,66 @@ console.log('Firebase initialized, loading products...');
 // --- Site State ---
 let allProducts = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 
-function updateCartUI() {
-    const cartCount = document.getElementById('cartCount');
-    const cartItemsContainer = document.getElementById('cartItems');
-    const cartTotalValue = document.getElementById('cartTotalValue');
-    const checkoutBtn = document.getElementById('checkoutBtn');
+// --- 1. Auth State Management ---
+onAuthStateChanged(auth, (user) => {
+    console.log("Auth State Changed:", user);
 
-    // Update notification bubble
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    if (cartCount) cartCount.innerText = totalItems;
+    const guestBtns = document.getElementById("guestBtns");
+    const userGreeting = document.getElementById("userGreeting");
+    const userNameDisplay = document.getElementById("userNameDisplay");
+    const logoutBtnDropdown = document.getElementById("logoutBtnDropdown");
 
-    // Remove existing listener to prevent duplicates
-    if (checkoutBtn) {
-        const newCheckoutBtn = checkoutBtn.cloneNode(true);
-        checkoutBtn.parentNode.replaceChild(newCheckoutBtn, checkoutBtn);
-    }
+    if (user) {
+        // ✅ User is logged in
+        if (guestBtns) guestBtns.style.display = "none";
+        if (userGreeting) userGreeting.style.display = "flex";
 
-    const currentCheckoutBtn = document.getElementById('checkoutBtn');
-
-    // Update items list
-    if (cartItemsContainer) {
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = '<p class="empty-cart-msg">Your cart is empty.</p>';
-            if (checkoutBtn) checkoutBtn.disabled = true;
-            if (cartTotalValue) cartTotalValue.innerText = '₹0.00';
-            return;
+        if (userNameDisplay) {
+            userNameDisplay.innerText = user.displayName || user.email;
         }
 
-        cartItemsContainer.innerHTML = '';
-        let totalCost = 0;
+        // Standard Session Cache
+        localStorage.setItem("user", JSON.stringify({
+            uid: user.uid,
+            name: user.displayName || user.email?.split('@')[0] || 'User'
+        }));
 
-        cart.forEach((item, index) => {
-            totalCost += item.price * item.quantity;
-            const cartItemEl = document.createElement('div');
-            cartItemEl.className = 'cart-item';
-            cartItemEl.innerHTML = `
-                <img src="${item.image || 'https://via.placeholder.com/60'}" alt="${item.name}">
-                <div class="cart-item-info">
-                    <h4 class="cart-item-title">${item.name}</h4>
-                    <p class="cart-item-price">₹${Number(item.price).toFixed(2)}</p>
-                    <div class="cart-item-actions">
-                        <button class="qty-btn minus-btn" data-index="${index}">-</button>
-                        <span>${item.quantity}</span>
-                        <button class="qty-btn plus-btn" data-index="${index}">+</button>
-                        <button class="remove-btn" data-index="${index}"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            cartItemsContainer.appendChild(cartItemEl);
-        });
-
-        if (cartTotalValue) cartTotalValue.innerText = `₹${totalCost.toFixed(2)}`;
-        if (currentCheckoutBtn) {
-            currentCheckoutBtn.disabled = false;
-            currentCheckoutBtn.addEventListener('click', () => {
-                if (auth.currentUser) {
-                    window.location.href = 'address.html';
-                } else {
-                    document.getElementById('cartModal').classList.remove('active');
-                    document.getElementById('authModal').classList.add('active');
-                }
-            });
+        // 🔥 Logic for handling mandatory redirects
+        const onSignupPage = window.location.pathname.includes('signup.html');
+        const inLoginModal = window.location.search.includes('login=true');
+        
+        if (onSignupPage || inLoginModal) {
+             window.location.href = "index.html"; 
+             return;
         }
 
-        // Attach listeners to newly created buttons
-        document.querySelectorAll('.minus-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = e.target.getAttribute('data-index');
-                if (cart[idx].quantity > 1) {
-                    cart[idx].quantity -= 1;
-                } else {
-                    cart.splice(idx, 1);
-                }
-                saveAndRenderCart();
-            });
-        });
+        // Attach Logout Event
+        if (logoutBtnDropdown) {
+            logoutBtnDropdown.onclick = () => {
+                signOut(auth).then(() => {
+                    localStorage.removeItem("user");
+                    window.location.href = 'index.html';
+                });
+            };
+        }
 
-        document.querySelectorAll('.plus-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = e.target.getAttribute('data-index');
-                cart[idx].quantity += 1;
-                saveAndRenderCart();
-            });
-        });
+    } else {
+        // ❌ User is logged out
+        if (guestBtns) guestBtns.style.display = "flex";
+        if (userGreeting) userGreeting.style.display = "none";
 
-        document.querySelectorAll('.remove-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = e.currentTarget.getAttribute('data-index');
-                cart.splice(idx, 1);
-                saveAndRenderCart();
-            });
-        });
+        localStorage.removeItem("user");
     }
-}
+});
 
-function saveAndRenderCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
-}
-
-/**
- * Load products from Firestore and render them into the #products container.
- */
+// --- 2. Product Management ---
 async function loadProducts() {
     const container = document.getElementById('products');
     const loading = document.getElementById('loadingIndicator');
-    if (!container) {
-        console.error('Product container not found');
-        return;
-    }
+    if (!container) return;
+
     try {
         if (loading) loading.style.display = 'block';
         const snapshot = await getDocs(collection(db, 'products'));
@@ -134,9 +82,7 @@ async function loadProducts() {
         renderProducts(allProducts);
     } catch (err) {
         console.error('Error loading products:', err);
-        if (container) {
-            container.innerHTML = '<p class="error">Failed to load products. Please check your connection.</p>';
-        }
+        if (container) container.innerHTML = `<p class="error">Failed to load products items.</p>`;
     } finally {
         if (loading) loading.style.display = 'none';
     }
@@ -145,211 +91,266 @@ async function loadProducts() {
 function renderProducts(productsToRender) {
     const container = document.getElementById('products');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
-    // Filter out truly empty/invalid documents
     const validProducts = productsToRender.filter(p => p.name);
-    
+
     if (validProducts.length === 0) {
-        container.innerHTML = '<p class="no-products">No products found matching your criteria.</p>';
+        container.innerHTML = '<p class="no-products">No products matched your search.</p>';
         return;
     }
 
-    validProducts.forEach((data, index) => {
+    const productsToDisplay = validProducts.slice(0, 8);
+    productsToDisplay.forEach((data, index) => {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.style.setProperty('--i', index);
         card.innerHTML = `
             <div class="product-image-container">
-                <img class="product-image" src="${data.image || 'https://placehold.co/600x600/FDF8EE/8C6339?text=Product'}" alt="${data.name || 'No Brand'}">
+                <a href="product.html?id=${data.id}">
+                    <img class="product-image" src="${data.image || 'https://via.placeholder.com/300'}" alt="${data.name}">
+                </a>
+                <button class="wishlist-toggle-btn" title="Add to Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
             </div>
             <div class="product-info">
-                <h3 class="product-title">${data.name || 'Anonymous Product'}</h3>
-                <p class="product-price">₹${Number(data.price || 0).toFixed(2)}</p>
-                <button class="add-to-cart-btn btn primary-btn w-100">Add to Bag</button>
+                <a href="product.html?id=${data.id}" style="text-decoration: none; color: inherit;">
+                    <h3 class="product-title">${data.name}</h3>
+                </a>
+                <p class="product-price">₹${Number(data.price).toFixed(2)}</p>
+                <button class="add-to-cart-btn btn primary-btn w-100 addBtn" data-id="${data.id}">Add to Bag</button>
             </div>`;
 
-            
-        const addBtn = card.querySelector('.add-to-cart-btn');
-        addBtn.addEventListener('click', () => {
-            const existingItem = cart.find(item => item.id === data.id);
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({ ...data, quantity: 1 });
+        // Card Interaction
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('.addBtn') && !e.target.closest('.wishlist-toggle-btn') && !e.target.closest('a')) {
+                window.location.href = `product.html?id=${data.id}`;
             }
-            saveAndRenderCart();
-            
-            addBtn.innerText = 'In Bag!';
+        });
+
+        const addBtn = card.querySelector('.addBtn');
+        const wishlistBtn = card.querySelector('.wishlist-toggle-btn');
+        const heartIcon = wishlistBtn.querySelector('i');
+
+        // Initial wishlist state
+        if (wishlist.some(item => item.id === data.id)) {
+            wishlistBtn.classList.add('active');
+            heartIcon.classList.remove('fa-regular');
+            heartIcon.classList.add('fa-solid');
+        }
+
+        addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addToCart(data);
+            addBtn.innerText = 'Added!';
             setTimeout(() => addBtn.innerText = 'Add to Bag', 1000);
         });
-        
+
+        wishlistBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleWishlist(data, wishlistBtn);
+        });
+
         container.appendChild(card);
     });
+
+    // Add "Explore All" button if there are more products
+    if (validProducts.length > 8) {
+        const moreBtnContainer = document.createElement('div');
+        moreBtnContainer.className = 'w-100 text-center mt-3';
+        moreBtnContainer.style.gridColumn = '1 / -1';
+        moreBtnContainer.innerHTML = `
+            <a href="shop.html" class="btn secondary-btn" style="min-width: 250px; border-radius: 40px; padding: 1rem 3rem;">
+                Explore All Products <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        `;
+        container.appendChild(moreBtnContainer);
+    }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const loading = document.getElementById('loadingIndicator');
-    if (loading) loading.innerHTML = '<p>Loading products...</p>';
-    updateCartUI(); // Initialize cart UI from localStorage
-    loadProducts();
+function toggleWishlist(product, btn) {
+    const idx = wishlist.findIndex(item => item.id === product.id);
+    const heartIcon = btn.querySelector('i');
+    
+    if (idx > -1) {
+        // Remove from wishlist
+        wishlist.splice(idx, 1);
+        btn.classList.remove('active');
+        heartIcon.classList.add('fa-regular');
+        heartIcon.classList.remove('fa-solid');
+    } else {
+        // Add to wishlist
+        wishlist.push(product);
+        btn.classList.add('active');
+        heartIcon.classList.remove('fa-regular');
+        heartIcon.classList.add('fa-solid');
+    }
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    console.log('Wishlist updated. Current count:', wishlist.length);
+}
 
-    // --- Filtering & Search Logic ---
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const filterBtns = document.querySelectorAll('.filter-btn');
+// --- 3. Shopping Bag (Cart) Management ---
+function addToCart(product, size = null) {
+    const existing = cart.find(item => item.id === product.id && item.size === size);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ ...product, quantity: 1, size });
+    }
+    saveCart();
+}
 
-    function performSearch() {
-        const term = searchInput.value.toLowerCase().trim();
-        const filtered = allProducts.filter(p => 
-            (p.name && p.name.toLowerCase().includes(term)) || 
-            (p.category && p.category.toLowerCase().includes(term))
-        );
-        renderProducts(filtered);
+function saveCart() {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartUI();
+}
+
+function updateCartUI() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItemsContainer = document.getElementById('cartItems');
+    const totalDisplay = document.getElementById('cartTotalValue');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartCount) cartCount.innerText = totalCount;
+
+    if (!cartItemsContainer) return;
+
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p class="empty-cart-msg">Your bag is empty.</p>';
+        if (totalDisplay) totalDisplay.innerText = '₹0.00';
+        if (checkoutBtn) checkoutBtn.disabled = true;
+        return;
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', performSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performSearch();
-        });
-    }
+    cartItemsContainer.innerHTML = '';
+    let subtotal = 0;
 
-    if (searchBtn) {
-        searchBtn.addEventListener('click', performSearch);
-    }
-
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            const category = btn.getAttribute('data-filter');
-            if (category === 'all') {
-                renderProducts(allProducts);
-            } else {
-                const filtered = allProducts.filter(p => 
-                    p.category && p.category.toLowerCase() === category.toLowerCase()
-                );
-                renderProducts(filtered);
-            }
-        });
+    cart.forEach((item, idx) => {
+        subtotal += item.price * item.quantity;
+        const el = document.createElement('div');
+        el.className = 'cart-item';
+        el.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <div class="cart-item-info">
+                <h4>${item.name} ${item.size ? `(${item.size})` : ''}</h4>
+                <p>₹${item.price} x ${item.quantity}</p>
+                <div class="cart-item-actions">
+                    <button class="qty-btn" onclick="window._changeQty(${idx}, -1)">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="qty-btn" onclick="window._changeQty(${idx}, 1)">+</button>
+                    <button class="remove-btn" onclick="window._removeItem(${idx})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        cartItemsContainer.appendChild(el);
     });
 
-    // --- Hamburger Menu Logic ---
+    if (totalDisplay) totalDisplay.innerText = `₹${subtotal.toFixed(2)}`;
+    if (checkoutBtn) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.onclick = () => {
+            window.location.href = auth.currentUser ? 'address.html' : 'index.html?login=true';
+        };
+    }
+}
+
+// Global scope helpers for onclick handlers
+window._changeQty = (idx, delta) => {
+    cart[idx].quantity += delta;
+    if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+    saveCart();
+};
+
+window._removeItem = (idx) => {
+    cart.splice(idx, 1);
+    saveCart();
+};
+
+window._addToCartGlobal = (product) => addToCart(product);
+window._toggleWishlistGlobal = (product, btn) => toggleWishlist(product, btn);
+
+// --- 4. Main Event Listeners ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadProducts();
+    updateCartUI();
+
+    // User Profile Dropdown Toggle
+    const userDropdownBtn = document.getElementById('userDropdownBtn');
+    const userGreeting = document.getElementById('userGreeting');
+    if (userDropdownBtn && userGreeting) {
+        userDropdownBtn.onclick = (e) => {
+            e.stopPropagation();
+            userGreeting.classList.toggle('active');
+        };
+        // Close when clicking outside
+        document.addEventListener('click', () => userGreeting.classList.remove('active'));
+    }
+
+    // Menu Toggle
     const menuToggle = document.getElementById('menuToggle');
     const navLinks = document.getElementById('navLinks');
     if (menuToggle && navLinks) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            navLinks.classList.toggle('active');
-            menuToggle.innerHTML = navLinks.classList.contains('active')
-                ? '<i class="fa-solid fa-xmark"></i>'
-                : '<i class="fa-solid fa-bars"></i>';
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
-                navLinks.classList.remove('active');
-                menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
-            }
-        });
-
-        // Close menu when clicking a link
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
-            });
-        });
+        menuToggle.onclick = () => navLinks.classList.toggle('active');
     }
 
-    // --- Cart Modal Logic ---
+    // Google Sign-In Button Explicit Listener
+    const googleBtn = document.getElementById('googleSignInBtn');
+    if (googleBtn) {
+        googleBtn.onclick = (e) => {
+            e.preventDefault();
+            console.log("Initiating Google Sign-In...");
+            window.loginWithGoogle();
+        };
+    }
+
+    // Modal Visibility
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const authModal = document.getElementById('authModal');
     const cartBtn = document.getElementById('cartBtn');
     const cartModal = document.getElementById('cartModal');
-    if (cartBtn && cartModal) {
-        cartBtn.addEventListener('click', () => {
-            cartModal.classList.add('active');
-        });
-    }
 
-    // --- Authentication Logic ---
-    const authModal = document.getElementById('authModal');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const closeBtns = document.querySelectorAll('.close-btn');
-    const authForm = document.getElementById('authForm');
-    const authSwitchBtn = document.getElementById('authSwitchBtn');
-    const googleSignInBtn = document.getElementById('googleSignInBtn');
-
-    // Phone Auth Elements
-    const phoneSignInSwitchBtn = document.getElementById('phoneSignInSwitchBtn');
-    const phoneAuthSection = document.getElementById('phoneAuthSection');
-    const sendOtpBtn = document.getElementById('sendOtpBtn');
-    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-    const phoneNumberInput = document.getElementById('phoneNumber');
-    const otpInput = document.getElementById('otpInput');
-    const phoneNumberGroup = document.getElementById('phoneNumberGroup');
-    const otpGroup = document.getElementById('otpGroup');
-
-    let isLoginMode = true;
-
-    // Auto-open login modal if redirected with ?login=true
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('login') === 'true' && authModal) {
+    if (loginBtn) loginBtn.onclick = () => {
+        isLoginMode = true;
+        updateAuthView();
         authModal.classList.add('active');
-    }
+    };
+    if (signupBtn) signupBtn.onclick = () => {
+        isLoginMode = false;
+        updateAuthView();
+        authModal.classList.add('active');
+    };
+    if (cartBtn) cartBtn.onclick = () => cartModal.classList.add('active');
 
-    // Open Modal
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            authModal.classList.add('active');
-
-            // Reset to default email view
-            authForm.style.display = 'block';
-            const divider = document.querySelector('.auth-divider');
-            if (divider) divider.style.display = 'flex';
-            if (googleSignInBtn) googleSignInBtn.style.display = 'block';
-            if (phoneSignInSwitchBtn) phoneSignInSwitchBtn.style.display = 'block';
-            const authSwitch = document.querySelector('.auth-switch');
-            if (authSwitch) authSwitch.style.display = 'block';
-            if (phoneAuthSection) phoneAuthSection.style.display = 'none';
-        });
-    }
-
-    // Close Modals
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.target.closest('.modal').classList.remove('active');
-        });
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.onclick = () => btn.closest('.modal').classList.remove('active');
     });
 
-    // Switch between Login and Register
+    // Login/Signup Toggle
+    let isLoginMode = true;
+    const authSwitchBtn = document.getElementById('authSwitchBtn');
+    function updateAuthView() {
+        document.getElementById('authTitle').innerText = isLoginMode ? 'Sign In' : 'Create Account';
+        document.getElementById('authSubmitBtn').innerText = isLoginMode ? 'Login' : 'Signup';
+        document.getElementById('nameGroup').style.display = isLoginMode ? 'none' : 'block';
+    }
     if (authSwitchBtn) {
-        authSwitchBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+        authSwitchBtn.onclick = () => {
             isLoginMode = !isLoginMode;
-
-            document.getElementById('authTitle').innerText = isLoginMode ? 'Login' : 'Register';
-            document.getElementById('authSubmitBtn').innerText = isLoginMode ? 'Login' : 'Register';
-            document.getElementById('authSwitchText').innerText = isLoginMode ? "Don't have an account?" : 'Already have an account?';
-            authSwitchBtn.innerText = isLoginMode ? 'Register' : 'Login';
-            document.getElementById('nameGroup').style.display = isLoginMode ? 'none' : 'block';
-            document.getElementById('authError').innerText = '';
-        });
+            updateAuthView();
+        };
     }
 
-    // Handle Form Submit (Email/Password)
+    // Auth Form Submit
+    const authForm = document.getElementById('authForm');
+    const errorDiv = document.getElementById('authError');
     if (authForm) {
-        authForm.addEventListener('submit', async (e) => {
+        authForm.onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('authEmail').value;
             const password = document.getElementById('authPassword').value;
-            const errorDiv = document.getElementById('authError');
-            errorDiv.innerText = '';
-
             try {
                 if (isLoginMode) {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -359,248 +360,91 @@ document.addEventListener('DOMContentLoaded', () => {
                     await updateProfile(res.user, { displayName: name });
                 }
                 authModal.classList.remove('active');
-                authForm.reset();
-            } catch (error) {
-                console.error("Auth error:", error);
-                errorDiv.innerText = error.message.replace("Firebase: ", "");
-                errorDiv.classList.add('active');
+                window.location.reload(); // Refresh to catch profile update
+            } catch (err) {
+                if (errorDiv) errorDiv.innerText = err.message.replace("Firebase:", "");
             }
-        });
+        };
     }
 
-    // Handle Google Sign-In
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-            document.getElementById('authError').innerText = '';
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                authModal.classList.remove('active');
-            } catch (error) {
-                console.error("Google auth error:", error);
-                const errorDiv = document.getElementById('authError');
-                errorDiv.innerText = error.message.replace("Firebase: ", "");
-                errorDiv.classList.add('active');
+    // Search Interaction
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                const term = e.target.value.trim();
+                if (term) window.location.href = `search.html?q=${encodeURIComponent(term)}`;
             }
-        });
+        };
     }
 
-    // Phone Authentication Integration Logic
-    if (phoneSignInSwitchBtn) {
-        phoneSignInSwitchBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            authForm.style.display = 'none';
-            const divider = document.querySelector('.auth-divider');
-            if (divider) divider.style.display = 'none';
-            if (googleSignInBtn) googleSignInBtn.style.display = 'none';
-            phoneSignInSwitchBtn.style.display = 'none';
-            const authSwitch = document.querySelector('.auth-switch');
-            if (authSwitch) authSwitch.style.display = 'none';
-
-            phoneAuthSection.style.display = 'block';
-            document.getElementById('authTitle').innerText = 'Phone Login';
-            const errorDiv = document.getElementById('authError');
-            if (errorDiv) {
-                errorDiv.innerText = '';
-                errorDiv.classList.remove('active');
-            }
-        });
-    }
-
-    // --- Phone Authentication Implementation ---
-    let timerInterval = null;
-
-    function startTimer() {
-        const timerCount = document.getElementById('timerCount');
-        const countdownArea = document.getElementById('countdownArea');
-        const resendOtpBtn = document.getElementById('resendOtpBtn');
-        
-        let timeLeft = 60;
-        if (countdownArea) countdownArea.style.display = 'block';
-        if (resendOtpBtn) resendOtpBtn.style.display = 'none';
-
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            if (timerCount) timerCount.innerText = timeLeft;
+    // Category Filtering
+    const categoryItems = document.querySelectorAll('.category-item');
+    categoryItems.forEach(item => {
+        item.onclick = () => {
+            const filter = item.getAttribute('data-filter');
             
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                if (countdownArea) countdownArea.style.display = 'none';
-                if (resendOtpBtn) resendOtpBtn.style.display = 'block';
+            // UI Update
+            categoryItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            // Data Filter
+            if (filter === 'all') {
+                renderProducts(allProducts);
+            } else {
+                const filtered = allProducts.filter(p => 
+                    p.category?.toLowerCase() === filter.toLowerCase()
+                );
+                renderProducts(filtered);
             }
-        }, 1000);
-    }
+        };
+    });
 
-    let recaptchaVerifier;
+    // --- Global Event Delegation for Dynamic Elements ---
+    document.addEventListener('click', async (e) => {
+        const logoutBtn = e.target.closest('#logoutBtnDropdown, #logoutBtnProfile');
+        if (!logoutBtn) return;
 
-    function setupRecaptcha() {
-        if (!recaptchaVerifier && auth) {
-            recaptchaVerifier = new RecaptchaVerifier(auth, 'sendOtpBtn', {
-                'size': 'invisible'
-            });
-            recaptchaVerifier.render().then(() => {
-                console.log("reCAPTCHA rendered");
-            });
-        }
-    }
+        e.preventDefault();
+        console.log("Logout triggered via:", logoutBtn.id);
+        const originalContent = logoutBtn.innerHTML;
+        logoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        logoutBtn.disabled = true;
 
-    window.onload = function() {
-        setupRecaptcha();
-    };
-
-    function sendOTP() {
-        const phoneInput = document.getElementById('phone');
-        const errorDiv = document.getElementById('authError');
-        
-        if (errorDiv) {
-            errorDiv.innerText = '';
-            errorDiv.classList.remove('active');
-        }
-
-        const inputNumber = phoneInput ? phoneInput.value.trim() : '';
-        const phoneNumber = "+91" + inputNumber;
-
-        if (!inputNumber || inputNumber.length < 10) {
-            if (errorDiv) {
-                errorDiv.innerText = "Please enter a valid 10-digit phone number.";
-                errorDiv.classList.add('active');
-            }
-            return;
-        }
-
-        // --- Real Firebase Phone Auth (Modular Promise logic) ---
-        setupRecaptcha();
-
-        sendOtpBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending SMS...';
-        sendOtpBtn.disabled = true;
-
-        signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier)
-            .then((confirmationResult) => {
-                window.confirmationResult = confirmationResult;
-                alert("OTP Sent!");
-                
-                phoneNumberGroup.style.display = 'none';
-                otpGroup.style.display = 'block';
-                const otpInput = document.getElementById('otpInput');
-                if (otpInput) otpInput.focus();
-                startTimer();
-            })
-            .catch((error) => {
-                console.error("Phone Auth Error: ", error);
-                sendOtpBtn.innerHTML = 'Send OTP';
-                sendOtpBtn.disabled = false;
-                
-                let message = error.message.replace("Firebase: ", "");
-                if (error.code === 'auth/unauthorized-domain') {
-                    message = `Unauthorized Domain: ${window.location.hostname}. Please add this to Firebase Console > Auth > Settings > Authorized Domains.`;
-                } else if (error.code === 'auth/quota-exceeded') {
-                    message = "SMS Quota Exceeded! Please add this number as a 'Test Phone Number' in the Firebase Console.";
-                }
-                
-                alert(message);
-                if (errorDiv) {
-                    errorDiv.innerText = message;
-                    errorDiv.classList.add('active');
-                }
-            });
-    }
-
-    if (sendOtpBtn) {
-        sendOtpBtn.addEventListener('click', () => {
-            sendOTP();
-        });
-    }
-
-    // Handle Resend OTP Click
-    const resendOtpBtn = document.getElementById('resendOtpBtn');
-    if (resendOtpBtn) {
-        resendOtpBtn.addEventListener('click', () => {
-            if (sendOtpBtn) {
-                otpGroup.style.display = 'none';
-                phoneNumberGroup.style.display = 'block';
-                sendOtpBtn.click(); // Trigger send again
-            }
-        });
-    }
-
-    if (verifyOtpBtn) {
-        verifyOtpBtn.addEventListener('click', async () => {
-            const errorDiv = document.getElementById('authError');
-            errorDiv.innerText = '';
-            const code = otpInput.value.trim();
-
-            if (!code) {
-                errorDiv.innerText = "Please enter the verification code.";
-                errorDiv.classList.add('active');
-                return;
-            }
-
-            verifyOtpBtn.innerText = 'Verifying...';
-            verifyOtpBtn.disabled = true;
-
-            try {
-                await window.confirmationResult.confirm(code);
-                authModal.classList.remove('active');
-
-                // Cleanup Modal for next opening
-                setTimeout(() => {
-                    otpGroup.style.display = 'none';
-                    phoneNumberGroup.style.display = 'block';
-                    sendOtpBtn.innerText = 'Send OTP';
-                    sendOtpBtn.disabled = false;
-                    verifyOtpBtn.innerText = 'Verify Code';
-                    verifyOtpBtn.disabled = false;
-                    if (timerInterval) clearInterval(timerInterval);
-                }, 500);
-
-            } catch (error) {
-                console.error("Verification Error: ", error);
-                errorDiv.innerText = "Invalid code. Please try again.";
-                errorDiv.classList.add('active');
-                verifyOtpBtn.innerText = 'Verify Code';
-                verifyOtpBtn.disabled = false;
-            }
-        });
-
-        otpInput.addEventListener('input', () => {
-            if (otpInput.value.trim().length === 6) {
-                verifyOtpBtn.click();
-            }
-        });
-    }
-
-    // Handle Logout
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
-        });
-    }
-
-    // Monitor Auth State Changes
-    onAuthStateChanged(auth, (user) => {
-        const userGreeting = document.getElementById('userGreeting');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const ordersLink = document.getElementById('ordersLink');
-
-        if (user) {
-            // User is signed in
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'inline-flex';
-            if (userGreeting) {
-                userGreeting.style.display = 'block';
-                userNameDisplay.innerText = user.displayName || (user.email ? user.email.split('@')[0] : (user.phoneNumber || 'User'));
-            }
-            if (ordersLink) ordersLink.style.display = 'block';
-        } else {
-            // User is signed out
-            loginBtn.style.display = 'inline-flex';
-            logoutBtn.style.display = 'none';
-            if (userGreeting) {
-                userGreeting.style.display = 'none';
-            }
-            if (ordersLink) ordersLink.style.display = 'none';
+        try {
+            await signOut(auth);
+            localStorage.removeItem("user");
+            console.log("Firebase SignOut successful. Redirecting...");
+            window.location.href = 'index.html';
+        } catch (err) {
+            console.error("Logout error:", err);
+            logoutBtn.innerHTML = originalContent;
+            logoutBtn.disabled = false;
+            alert("Logging out failed. Please check your connection.");
         }
     });
 });
+
+// --- 5. Global Helpers for Popups ---
+window.loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    console.log("Starting Google Sign-In popup...");
+    try {
+        const result = await signInWithPopup(auth, provider);
+        console.log("Google Login SUCCESS:", result.user.email);
+        localStorage.setItem("user", JSON.stringify({
+            uid: result.user.uid,
+            name: result.user.displayName || result.user.email
+        }));
+        window.location.reload(); 
+    } catch (err) {
+        console.error("Google Sign-In Error:", err);
+        if (err.code === "auth/unauthorized-domain") {
+            alert("Error: Unauthorized Domain. Please add '" + window.location.hostname + "' to Firebase Console -> Auth -> Settings -> Authorized Domains.");
+        } else if (err.code === "auth/popup-closed-by-user") {
+            console.log("User closed the popup.");
+        } else {
+            alert("Login Failed: " + err.message);
+        }
+    }
+};

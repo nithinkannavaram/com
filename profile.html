@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - KN SHOP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"
+        }
+      }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                <span class="logo-text">KN SHOP</span>
+            </a>
+            
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products...">
+                <i class="fa fa-magnifying-glass"></i>
+            </div>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                
+                <li>
+                    <button id="cartBtn" class="icon-btn cart-toggle" aria-label="Open Shopping Bag" style="background: none; border: none; color: inherit; font-size: 1.1rem; cursor: pointer; position: relative;">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="cartCount" class="badge">0</span>
+                    </button>
+                </li>
+
+                <li id="userGreeting" class="user-profile-dropdown" style="display: none;">
+                    <div class="user-greeting-btn" id="userDropdownBtn">
+                        <i class="fa-solid fa-user-circle" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+                        <span id="userNameDisplay">User</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="profile.html" class="dropdown-item active"><i class="fa-solid fa-circle-user"></i> My Profile</a>
+                        <a href="orders.html" class="dropdown-item"><i class="fa-solid fa-box-open"></i> My Orders</a>
+                        <a href="wishlist.html" class="dropdown-item"><i class="fa-solid fa-heart"></i> My Wishlist</a>
+                        <div class="dropdown-divider"></div>
+                        <button id="logoutBtnDropdown" class="dropdown-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    </div>
+                </li>
+            </ul>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="profile-page" style="padding: 4rem 2rem; min-height: 80vh; background-color: var(--bg-color);">
+        <div class="nav-container" style="max-width: 900px;">
+            <div style="display: grid; grid-template-columns: 320px 1fr; gap: 2.5rem; align-items: start;">
+                
+                <!-- 1. Profile Info (Sidebar) -->
+                <aside class="profile-sidebar" style="background: white; padding: 2.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); text-align: center;">
+                    <div class="profile-avatar" style="width: 120px; height: 120px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; margin: 0 auto 2rem; box-shadow: 0 8px 25px rgba(140, 99, 57, 0.2);">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h2 id="profileName" style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-main); font-family: 'Playfair Display', serif;">User Session</h2>
+                    <p id="profileEmail" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; word-break: break-all;">Account Loading...</p>
+                </aside>
+
+                <!-- 2. Main Dashboard Content -->
+                <section class="profile-dashboard">
+                    <h1 style="font-size: 2.2rem; color: var(--text-main); margin-bottom: 2rem; font-family: 'Playfair Display', serif;">My Dashboard</h1>
+                    
+                    <!-- Quick Links / Sections -->
+                    <div class="dashboard-grid" style="display: grid; gap: 1rem; margin-bottom: 3rem;">
+                        <a href="orders.html" class="dashboard-link" style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-main); transition: var(--transition);">
+                            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                <i class="fa-solid fa-box-open" style="font-size: 1.4rem; color: var(--primary-color);"></i>
+                                <span style="font-weight: 600; font-size: 1.1rem;">My Orders</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        </a>
+
+                        <a href="wishlist.html" class="dashboard-link" style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-main); transition: var(--transition);">
+                            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                <i class="fa-solid fa-heart" style="font-size: 1.4rem; color: var(--primary-color);"></i>
+                                <span style="font-weight: 600; font-size: 1.1rem;">My Wishlist</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        </a>
+
+                        <a href="coupons.html" class="dashboard-link" style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-main); transition: var(--transition);">
+                            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                <i class="fa-solid fa-ticket" style="font-size: 1.4rem; color: var(--primary-color);"></i>
+                                <span style="font-weight: 600; font-size: 1.1rem;">My Coupons</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shopping Bag Modal (Required for navbar cart link) -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content side-drawer">
+            <div class="drawer-header"><h3>Shopping Bag</h3><button class="close-btn">&times;</button></div>
+            <div class="drawer-body" id="cartItems"></div>
+            <div class="drawer-footer">
+                <div class="total-row"><span>Total:</span><span id="cartTotalValue">₹0.00</span></div>
+                <button id="checkoutBtn" class="btn primary-btn w-100" disabled>Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module" src="js/app.js"></script>
+    <script type="module">
+        import { onAuthStateChanged } from "firebase/auth";
+        import { auth } from "./firebase.js";
+        
+        // Only handle name/email display here, let app.js handle logout
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const userName = user.displayName || user.email.split('@')[0];
+                document.getElementById('profileName').innerText = userName.charAt(0).toUpperCase() + userName.slice(1);
+                document.getElementById('profileEmail').innerText = user.email;
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

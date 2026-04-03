@@ -21,41 +21,88 @@
         }
     }
     </script>
+    <!-- Immediate Navbar Sync Logic (Anti-Flicker) -->
+    <script>
+        const cachedUser = JSON.parse(localStorage.getItem('user'));
+        if (cachedUser && (cachedUser.uid || cachedUser.name)) {
+            document.documentElement.classList.add('user-cached');
+            window.addEventListener('DOMContentLoaded', () => {
+                // Pre-populate if DOM is ready but JS not yet loaded
+                const navNameDisplay = document.getElementById('userNameDisplay');
+                const welcomeNameDisplay = document.getElementById('welcomeName');
+                const userAvatar = document.getElementById('userAvatar');
+                const userGreetingNav = document.getElementById('userGreeting');
+                
+                if (navNameDisplay) navNameDisplay.innerText = cachedUser.name;
+                if (welcomeNameDisplay) welcomeNameDisplay.innerText = cachedUser.name;
+                if (userGreetingNav) userGreetingNav.style.display = 'flex';
+                
+                // Show/hide based on cache
+                const guestBtns = document.getElementById('guestBtns');
+                if (guestBtns) guestBtns.style.display = 'none';
+                const logoutBtn = document.getElementById('logoutBtn');
+                const userGreeting = document.getElementById('userGreeting');
+                
+                if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+                if (userGreeting) userGreeting.style.display = 'flex';
+                ['ordersLink', 'wishlistLink', 'couponsLink', 'dashboardLink'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'block';
+                });
+            });
+        }
+    </script>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <a href="index.html" class="logo">
                 <img src="ganesha-logo.png" class="logo-icon" alt="KN SHOP Logo">
                 <span class="logo-text">KN SHOP</span>
-            </div>
+            </a>
 
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="Search products...">
                 <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
             </div>
 
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-
             <ul class="nav-links" id="navLinks">
-                <li><a href="#" class="active">Home</a></li>
-                <li id="ordersLink" style="display: none;"><a href="orders.html">My Orders</a></li>
-                <li id="userGreeting" style="display: none; color: var(--primary-color); font-weight: 500;">
-                    Hello, <span id="userNameDisplay">User</span>
-                </li>
+                <li><a href="index.html" class="active">Home</a></li>
+                
                 <li>
-                    <button id="cartBtn" class="icon-btn">
-                        <i class="fa-solid fa-bag-shopping"></i>
+                    <button id="cartBtn" class="icon-btn cart-toggle" aria-label="Open Shopping Bag" style="background: none; border: none; color: inherit; font-size: 1.1rem; cursor: pointer; position: relative;">
+                        <i class="fa-solid fa-cart-shopping"></i>
                         <span id="cartCount" class="badge">0</span>
                     </button>
                 </li>
-                <li>
-                    <button id="loginBtn" class="btn primary-btn">Login</button>
-                    <button id="logoutBtn" class="btn secondary-btn" style="display: none;">Logout</button>
+
+                <li id="userGreeting" class="user-profile-dropdown" style="display: none;">
+                    <div class="user-greeting-btn" id="userDropdownBtn">
+                        <i class="fa-solid fa-user-circle" style="font-size: 1.2rem; color: var(--primary-color);"></i>
+                        <span id="userNameDisplay">User</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </div>
+                    <div class="dropdown-menu">
+                        <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> My Profile</a>
+                        <a href="orders.html" class="dropdown-item"><i class="fa-solid fa-box-open"></i> My Orders</a>
+                        <a href="wishlist.html" class="dropdown-item"><i class="fa-solid fa-heart"></i> My Wishlist</a>
+                        <a href="coupons.html" class="dropdown-item"><i class="fa-solid fa-ticket"></i> My Coupons</a>
+                        <div class="dropdown-divider"></div>
+                        <button id="logoutBtnDropdown" class="dropdown-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    </div>
+                </li>
+
+                <li class="auth-btns">
+                    <div id="guestBtns">
+                        <button class="btn primary-btn" id="loginBtn">Login</button>
+                        <button class="btn secondary-btn" id="signupBtn">Signup</button>
+                    </div>
                 </li>
             </ul>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </nav>
 
@@ -66,27 +113,50 @@
                 <h4>Premium Tech & Style</h4>
                 <h1>Discover New Horizons</h1>
                 <p>Elevate your lifestyle with our carefully curated collection of electronics and fashion essentials.</p>
-                <button class="btn primary-btn large">Shop Now</button>
+                <a href="shop.html">
+  <button class="btn primary-btn large">Shop Now</button>
+</a>
             </div>
         </section>
 
         <!-- Categories -->
-        <section class="categories">
-            <div class="category-filters">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="electronics">Electronics</button>
-                <button class="filter-btn" data-filter="fashion">Clothing</button>
-                <button class="filter-btn" data-filter="accessories">Accessories</button>
+        <section class="premium-categories">
+            <div class="category-scroll">
+                <div class="category-item active" data-filter="all">
+                    <div class="category-icon-box"><i class="fa-solid fa-layer-group"></i></div>
+                    <span>For You</span>
+                </div>
+                <div class="category-item" data-filter="fashion">
+                    <div class="category-icon-box"><i class="fa-solid fa-shirt"></i></div>
+                    <span>Fashion</span>
+                </div>
+                <div class="category-item" data-filter="electronics">
+                    <div class="category-icon-box"><i class="fa-solid fa-laptop"></i></div>
+                    <span>Tech</span>
+                </div>
+                <div class="category-item" data-filter="home">
+                    <div class="category-icon-box"><i class="fa-solid fa-couch"></i></div>
+                    <span>Home</span>
+                </div>
+                <div class="category-item" data-filter="accessories">
+                    <div class="category-icon-box"><i class="fa-solid fa-gem"></i></div>
+                    <span>Accessories</span>
+                </div>
+                <div class="category-item" data-filter="wellness">
+                    <div class="category-icon-box"><i class="fa-solid fa-leaf"></i></div>
+                    <span>Wellness</span>
+                </div>
             </div>
         </section>
 
         <!-- Products Grid -->
         <section class="products-section">
             <h2 class="section-title">Latest Arrivals</h2>
-            <div id="loadingIndicator" class="loading">
-                <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+            <div id="loadingIndicator" class="text-center" style="display: none;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--primary-color);"></i>
+                <p style="margin-top: 1rem; color: var(--text-muted);">Finding products...</p>
             </div>
-            <div id="products" class="products-grid"></div>
+            <div id="products" class="product-grid"></div>
         </section>
     </main>
 
@@ -138,7 +208,7 @@
                 <div class="auth-divider"><span>or</span></div>
                 
                 <div id="socialAuthButtons">
-                    <button id="googleSignInBtn" class="btn secondary-btn w-100 mb-3"><i class="fa-brands fa-google"></i> Google</button>
+                    <button id="googleSignInBtn" onclick="loginWithGoogle()" class="btn secondary-btn w-100 mb-3"><i class="fa-brands fa-google"></i> Continue with Google</button>
                     <button id="phoneSignInSwitchBtn" class="btn secondary-btn w-100"><i class="fa-solid fa-phone"></i> Phone Number</button>
                 </div>
 
@@ -173,6 +243,66 @@
         </div>
     </div>
 
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content center-modal product-detail-modal">
+            <button class="close-btn product-modal-close" id="productModalClose">&times;</button>
+            <div class="product-detail-container">
+                <!-- Left: Image Gallery -->
+                <div class="product-gallery">
+                    <div class="main-image-container">
+                        <img id="modalMainImage" src="" alt="Product Image">
+                    </div>
+                    <div class="thumbnail-grid" id="thumbnailContainer"></div>
+                </div>
+
+                <!-- Right: Product Info + Description -->
+                <div class="product-detail-info">
+                    <div class="product-detail-header">
+                        <span class="product-detail-badge">Premium Quality</span>
+                        <h2 id="modalProductTitle" class="product-detail-title">Product Title</h2>
+                        <p id="modalProductPrice" class="detail-price">₹0.00</p>
+                    </div>
+
+                    <!-- Product Description Section -->
+                    <div class="product-description-section">
+                        <div class="description-block">
+                            <h4 class="desc-heading">
+                                <i class="fa-solid fa-align-left"></i>
+                                About This Product
+                            </h4>
+                            <p id="modalProductDescription" class="detail-description">
+                                Elevate your style with this premium item from our latest collection.
+                            </p>
+                        </div>
+
+                        <div class="features-block" id="featuresBlock">
+                            <h4 class="desc-heading">
+                                <i class="fa-solid fa-star"></i>
+                                Key Features
+                            </h4>
+                            <ul class="features-list" id="modalFeaturesList"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Size Selector (Fashion only) -->
+                    <div class="size-selector-container" id="sizeSelectorContainer" style="display: none;">
+                        <label>Select Size</label>
+                        <div class="size-options" id="sizeOptions"></div>
+                    </div>
+
+                    <!-- Add to Cart -->
+                    <button id="modalAddToCartBtn" class="btn primary-btn w-100 modal-add-btn">
+                        <i class="fa-solid fa-cart-shopping"></i> Add to Bag
+                    </button>
+                    <div id="modalCartStatus" class="cart-status-msg" style="display: none;">
+                        <i class="fa-solid fa-check-circle"></i> Added to your bag!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-section">
@@ -192,7 +322,9 @@
             </div>
             <div class="footer-section">
                 <h3>Contact Us</h3>
-             <p><i class="fa-solid fa-location-dot"></i> 123 Tech Valley, Silicon City</p>
+                <a href="https://maps.app.goo.gl/YjAgWg2snTM5G9yG6" target="_blank" rel="noopener noreferrer">
+                    <p><i class="fa-solid fa-location-dot"></i> Srikalahasti</p>
+                </a>
                 <a href="tel:+919999999999">
                     <p><i class="fa-solid fa-phone"></i> +91 99999 99999</p>
                 </a>

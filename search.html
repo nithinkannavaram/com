@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KN SHOP - Search Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"
+        }
+      }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                <span class="logo-text">KN SHOP</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main style="padding-top: 6rem;">
+        <section class="products-section">
+            <h2 class="section-title">Search Results</h2>
+            <div id="loadingIndicator" class="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i> Finding your matches...
+            </div>
+            <div id="products" class="products-grid"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="logo">
+                    <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+                    <span class="logo-text">KN Shop</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="js/search.js"></script>
+</body>
+</html>
