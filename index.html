@@ -55,7 +55,16 @@
 </head>
 <body>
     <nav class="navbar">
+        <!-- Overlay -->
+        <div class="nav-overlay" id="navOverlay"></div>
+
         <div class="nav-container">
+            <!-- Left: Toggle -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Open Navigation Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Brand Logo -->
             <a href="index.html" class="logo">
                 <img src="ganesha-logo.png" class="logo-icon" alt="KN SHOP Logo">
                 <span class="logo-text">KN SHOP</span>
@@ -66,45 +75,74 @@
                 <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
             </div>
 
-            <ul class="nav-links" id="navLinks">
+            <!-- Desktop Links (Hidden on Mobile) -->
+            <ul class="nav-links desktop-links">
                 <li><a href="index.html" class="active">Home</a></li>
-                
-                <li>
-                    <button id="cartBtn" class="icon-btn cart-toggle" aria-label="Open Shopping Bag" style="background: none; border: none; color: inherit; font-size: 1.1rem; cursor: pointer; position: relative;">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                        <span id="cartCount" class="badge">0</span>
-                    </button>
-                </li>
-
-                <li id="userGreeting" class="user-profile-dropdown" style="display: none;">
-                    <div class="user-greeting-btn" id="userDropdownBtn">
-                        <i class="fa-solid fa-user-circle" style="font-size: 1.2rem; color: var(--primary-color);"></i>
-                        <span id="userNameDisplay">User</span>
-                        <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
-                    </div>
-                    <div class="dropdown-menu">
-                        <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> My Profile</a>
-                        <a href="orders.html" class="dropdown-item"><i class="fa-solid fa-box-open"></i> My Orders</a>
-                        <a href="wishlist.html" class="dropdown-item"><i class="fa-solid fa-heart"></i> My Wishlist</a>
-                        <a href="coupons.html" class="dropdown-item"><i class="fa-solid fa-ticket"></i> My Coupons</a>
-                        <div class="dropdown-divider"></div>
-                        <button id="logoutBtnDropdown" class="dropdown-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-                    </div>
-                </li>
-
-                <li class="auth-btns">
-                    <div id="guestBtns">
-                        <button class="btn primary-btn" id="loginBtn">Login</button>
-                        <button class="btn secondary-btn" id="signupBtn">Signup</button>
-                    </div>
-                </li>
+                <li><a href="shop.html">Shop</a></li>
             </ul>
 
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            <!-- Right Icons -->
+            <div class="nav-actions">
+                <!-- User Area (Always for Desktop) -->
+                <div class="desktop-user-area">
+                    <div id="guestBtns">
+                        <button class="btn secondary-btn" id="loginBtn">Login</button>
+                    </div>
+
+                    <div id="userGreeting" class="user-profile-dropdown" style="display: none;">
+                        <div class="user-greeting-btn" id="userDropdownBtn">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span id="userNameDisplay">User</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu">
+                            <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> My Profile</a>
+                            <a href="orders.html" class="dropdown-item"><i class="fa-solid fa-box-open"></i> My Orders</a>
+                            <a href="wishlist.html" class="dropdown-item"><i class="fa-solid fa-heart"></i> My Wishlist</a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logoutBtnDropdown" class="dropdown-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="cartBtn" class="icon-btn cart-toggle" aria-label="Open Shopping Bag">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cartCount" class="badge">0</span>
+                </button>
+            </div>
+
+            <!-- Mobile Drawer -->
+            <div class="nav-drawer" id="navDrawer">
+                <div class="drawer-header">
+                    <div class="user-info" id="drawerUserDisplay">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <span>Welcome, Guest</span>
+                    </div>
+                </div>
+                
+                <ul class="drawer-links">
+                    <li class="nav-section-label">Main Menu</li>
+                    <li><a href="index.html" class="active"><i class="fa-solid fa-house"></i> Home</a></li>
+                    <li><a href="shop.html"><i class="fa-solid fa-store"></i> Shop</a></li>
+                    
+                    <li class="nav-section-label">Account</li>
+                    <li><a href="#" class="cart-toggle"><i class="fa-solid fa-bag-shopping"></i> My Cart</a></li>
+                    <li class="auth-only"><a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a></li>
+                    <li class="auth-only"><a href="orders.html"><i class="fa-solid fa-box-archive"></i> My Orders</a></li>
+                    <li class="auth-only"><a href="wishlist.html"><i class="fa-solid fa-heart"></i> My Wishlist</a></li>
+                    
+                    <li class="nav-divider"></li>
+                    <li id="guestLinks">
+                        <a href="#" id="loginLink"><i class="fa-solid fa-right-to-bracket"></i> Login / Signup</a>
+                    </li>
+                    <li id="logoutLinkItem" style="display: none;">
+                        <a href="#" id="logoutBtnDrawer" class="logout-text"><i class="fa-solid fa-power-off"></i> Logout</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
+
 
     <main>
         <!-- Hero Section -->
@@ -212,32 +250,40 @@
                     <button id="phoneSignInSwitchBtn" class="btn secondary-btn w-100"><i class="fa-solid fa-phone"></i> Phone Number</button>
                 </div>
 
-                <!-- Phone Auth Section (Hidden by default) -->
-                <div id="phoneAuthSection" style="display: none; margin-top: 1rem;">
-                    <div id="recaptcha-container"></div>
-                    <div id="phoneNumberGroup" class="form-group">
-                        <label for="phoneNumber">Phone Number</label>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="countryCode" style="width: 80px; padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-main);">
-                                <option value="+91">+91</option>
-                                <option value="+1">+1</option>
-                                <option value="+44">+44</option>
-                            </select>
-                            <input type="tel" id="phoneNumber" placeholder="9876543210" style="flex: 1;">
-                        </div>
-                        <button id="sendOtpBtn" class="btn primary-btn w-100 mt-3">Send OTP</button>
-                    </div>
-                    
-                    <div id="otpGroup" class="form-group" style="display: none;">
-                        <label for="verificationCode">Enter verification code</label>
-                        <input type="text" id="verificationCode" placeholder="123456">
-                        <button id="verifyOtpBtn" class="btn primary-btn w-100 mt-3">Verify Code</button>
-                    </div>
-                </div>
-
                 <p class="auth-switch">
                     <span id="authSwitchText">Don't have an account?</span>
                     <button id="authSwitchBtn" class="text-btn">Register</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phone Auth Modal (Moved out for consistency) -->
+    <div id="phoneAuthModal" class="modal">
+        <div class="modal-content center-modal">
+            <div class="modal-header">
+                <h2>Login with Phone</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="auth-form-container">
+                <div id="phoneInputSection">
+                    <div class="phone-input-group">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="phoneNumber" placeholder="9876543210" maxlength="10">
+                    </div>
+                    <div id="recaptcha-container"></div>
+                    <button id="sendOTPBtn" class="btn primary-btn w-100 mt-3" disabled>Send One-Time Password</button>
+                </div>
+
+                <div id="otpSection" style="display: none;">
+                    <p class="text-muted mb-3">Enter the 6-digit code sent to <span id="sentNumber"></span></p>
+                    <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" class="otp-input">
+                    <button id="verifyOTPBtn" class="btn primary-btn w-100 mt-3">Verify & Login</button>
+                    <button id="resendOTPBtn" class="btn text-btn mt-2">Didn't get the code? Resend</button>
+                </div>
+                
+                <p class="auth-toggle mt-3">
+                    Prefer email? <a href="#" id="emailAuthSwitchBtn">Back to email login</a>
                 </p>
             </div>
         </div>
@@ -299,6 +345,29 @@
                         <i class="fa-solid fa-check-circle"></i> Added to your bag!
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart Side Drawer -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content side-drawer-right">
+            <div class="drawer-header">
+                <h3><i class="fa-solid fa-bag-shopping"></i> Shopping Bag</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="drawer-body" id="cartItems">
+                <div class="empty-cart-msg">
+                    <p>Your bag is empty.</p>
+                    <a href="shop.html" class="btn secondary-btn mt-3">Start Shopping</a>
+                </div>
+            </div>
+            <div class="drawer-footer">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="cartTotalValue">₹0.00</span>
+                </div>
+                <button id="checkoutBtn" class="btn primary-btn w-100" disabled>Proceed to Checkout</button>
             </div>
         </div>
     </div>

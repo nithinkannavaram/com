@@ -3,17 +3,20 @@ import {
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     updateProfile,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendEmailVerification
 } from "firebase/auth";
 
 
 // ✅ GLOBAL AUTH CHECK (ONLY ON LOGIN/SIGNUP PAGE)
 onAuthStateChanged(auth, (user) => {
-    if (user) {
+        const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com' || p.providerId === 'phone');
+        
         localStorage.setItem('user', JSON.stringify({
             uid: user.uid,
             name: user.displayName || user.email?.split('@')[0] || 'User',
-            email: user.email || ''
+            email: user.email || '',
+            verified: isVerified
         }));
 
         // 🔥 Redirect ONLY if already logged in
@@ -87,11 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const user = userCredential.user;
 
                 await updateProfile(user, { displayName: name });
+                
+                // --- Email Verification ---
+                await sendEmailVerification(user);
+                alert("Account created! A verification email has been sent to " + email + ". Please verify your address.");
 
                 localStorage.setItem('user', JSON.stringify({
                     uid: user.uid,
                     name: name,
-                    email: email
+                    email: email,
+                    verified: false
                 }));
 
                 window.location.href = 'index.html';

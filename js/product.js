@@ -21,7 +21,43 @@ async function loadProduct() {
             const product = { id: docSnap.id, ...docSnap.data() };
 
             document.getElementById("title").innerText = product.name;
-            document.getElementById("image").src = product.image || 'https://via.placeholder.com/300';
+            
+            // Handle image sources (Array or Strings - Support both 'image' and 'images' fields)
+            let rawImages = [];
+            if (Array.isArray(product.image)) rawImages = product.image;
+            else if (Array.isArray(product.images)) rawImages = product.images;
+            else if (product.image || product.image1) rawImages = [product.image || product.image1];
+            else rawImages = ['https://via.placeholder.com/300'];
+
+            const allImages = rawImages.map(url => url.toString().trim().replace('cloundinary', 'cloudinary'));
+
+            const mainImageEl = document.getElementById("image");
+            mainImageEl.src = allImages[0];
+
+            // Render Thumbnails
+            const thumbContainer = document.getElementById('thumbnails');
+            if (thumbContainer) {
+                thumbContainer.innerHTML = '';
+                if (allImages.length > 1) {
+                    allImages.forEach((imgSrc, idx) => {
+                        const thumb = document.createElement('img');
+                        thumb.src = imgSrc;
+                        thumb.className = `thumbnail ${idx === 0 ? 'active' : ''}`;
+                        thumb.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; flex-shrink: 0;';
+                        if (idx === 0) thumb.style.borderColor = 'var(--primary-color)';
+                        
+                        thumb.onclick = () => {
+                            mainImageEl.src = imgSrc;
+                            document.querySelectorAll('.thumbnail').forEach(t => t.style.borderColor = 'transparent');
+                            thumb.style.borderColor = 'var(--primary-color)';
+                        };
+                        thumbContainer.appendChild(thumb);
+                    });
+                } else {
+                    thumbContainer.style.display = 'none';
+                }
+            }
+
             document.getElementById("price").innerText = "₹" + Number(product.price).toFixed(2);
             document.getElementById("description").innerText = product.description || "Premium quality product details.";
 
@@ -76,6 +112,18 @@ async function loadProduct() {
                     }
                     addToCart(product, selectedSize);
                     window.location.href = auth.currentUser ? 'address.html' : 'index.html?login=true';
+                };
+            }
+
+            const addToWishlistBtn = document.getElementById('addToWishlistBtn');
+            if (addToWishlistBtn) {
+                addToWishlistBtn.onclick = () => {
+                    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+                    if (!wishlist.some(item => item.id === product.id)) {
+                        wishlist.push(product);
+                        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+                        addToWishlistBtn.innerHTML = '<i class="fa-solid fa-heart"></i> Added to Wishlist';
+                    }
                 };
             }
 

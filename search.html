@@ -12,45 +12,197 @@
         "imports": {
           "firebase/app": "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js",
           "firebase/firestore": "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js",
-          "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"
+          "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js",
+          "firebase/analytics": "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js"
         }
       }
     </script>
 </head>
 <body>
     <nav class="navbar">
+        <!-- Overlay -->
+        <div class="nav-overlay" id="navOverlay"></div>
+
         <div class="nav-container">
-            <div class="logo">
-                <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
+            <!-- Left: Toggle -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Open Navigation Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Brand Logo -->
+            <a href="index.html" class="logo">
+                <img src="ganesha-logo.png" class="logo-icon" alt="KN SHOP Logo">
                 <span class="logo-text">KN SHOP</span>
+            </a>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products...">
+                <button id="searchBtn"><i class="fa-solid fa-search"></i></button>
             </div>
-            <ul class="nav-links">
+
+            <!-- Desktop Links -->
+            <ul class="nav-links desktop-links">
                 <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
             </ul>
+
+            <!-- Right Icons -->
+            <div class="nav-actions">
+                <div class="desktop-user-area">
+                    <div id="guestBtns">
+                        <button class="btn secondary-btn" id="loginBtn">Login</button>
+                    </div>
+
+                    <div id="userGreeting" class="user-profile-dropdown" style="display: none;">
+                        <div class="user-greeting-btn" id="userDropdownBtn">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span id="userNameDisplay">User</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu">
+                            <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> My Profile</a>
+                            <a href="orders.html" class="dropdown-item"><i class="fa-solid fa-box-open"></i> My Orders</a>
+                            <a href="wishlist.html" class="dropdown-item"><i class="fa-solid fa-heart"></i> My Wishlist</a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logoutBtnDropdown" class="dropdown-item logout-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="cartBtn" class="icon-btn cart-toggle" aria-label="Open Shopping Bag">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cartCount" class="badge">0</span>
+                </button>
+            </div>
+
+            <!-- Mobile Drawer -->
+            <div class="nav-drawer" id="navDrawer">
+                <div class="drawer-header">
+                    <div class="user-info" id="drawerUserDisplay">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <span>Welcome, Guest</span>
+                    </div>
+                </div>
+                
+                <ul class="drawer-links">
+                    <li class="nav-section-label">Main Menu</li>
+                    <li><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></li>
+                    <li><a href="shop.html"><i class="fa-solid fa-store"></i> Shop</a></li>
+                    
+                    <li class="nav-section-label">Account</li>
+                    <li class="auth-only"><a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a></li>
+                    <li class="auth-only"><a href="orders.html"><i class="fa-solid fa-box-archive"></i> My Orders</a></li>
+                    <li class="auth-only"><a href="wishlist.html"><i class="fa-solid fa-heart"></i> My Wishlist</a></li>
+                    
+                    <li class="nav-divider"></li>
+                    <li id="guestLinks">
+                        <a href="#" id="loginLink"><i class="fa-solid fa-right-to-bracket"></i> Login / Signup</a>
+                    </li>
+                    <li id="logoutLinkItem" style="display: none;">
+                        <a href="#" id="logoutBtnDrawer" class="logout-text"><i class="fa-solid fa-power-off"></i> Logout</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
     <main style="padding-top: 6rem;">
         <section class="products-section">
-            <h2 class="section-title">Search Results</h2>
-            <div id="loadingIndicator" class="loading">
-                <i class="fa-solid fa-spinner fa-spin"></i> Finding your matches...
+            <div class="container">
+                <h2 class="section-title">Search Results</h2>
+                <div id="loadingIndicator" class="loading" style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 1rem;">Finding your matches...</p>
+                </div>
+                <div id="products" class="products-grid"></div>
             </div>
-            <div id="products" class="products-grid"></div>
         </section>
     </main>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <div class="logo">
-                    <img src="ganesha-logo.png" class="logo-icon" alt="KN Shop Logo">
-                    <span class="logo-text">KN Shop</span>
-                </div>
+    <!-- Shopping Bag Modal -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content side-drawer">
+            <div class="drawer-header">
+                <h3>Shopping Bag</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="drawer-body" id="cartItems"></div>
+            <div class="drawer-footer">
+                <div class="total-row"><span>Total:</span><span id="cartTotalValue">₹0.00</span></div>
+                <button id="checkoutBtn" class="btn primary-btn w-100" disabled>Proceed to Checkout</button>
             </div>
         </div>
-    </footer>
+    </div>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content center-modal">
+            <div class="modal-header">
+                <h2 id="authTitle">Sign In</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="auth-form-container">
+                <form id="authForm">
+                    <div class="form-group" id="nameGroup" style="display: none;">
+                        <label for="authName">Full Name</label>
+                        <input type="text" id="authName" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="authEmail">Email address</label>
+                        <input type="email" id="authEmail" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="authPassword">Password</label>
+                        <input type="password" id="authPassword" required placeholder="Enter your password">
+                    </div>
+                    <div id="authError" class="error-msg"></div>
+                    <button type="submit" class="btn primary-btn w-100" id="authSubmitBtn">Login</button>
+                </form>
+                
+                <div class="auth-divider"><span>or</span></div>
+                
+                <div id="socialAuthButtons">
+                    <button id="googleSignInBtn" class="btn secondary-btn w-100 mb-3"><i class="fa-brands fa-google"></i> Continue with Google</button>
+                    <button id="phoneSignInSwitchBtn" class="btn secondary-btn w-100"><i class="fa-solid fa-phone"></i> Phone Number</button>
+                </div>
+                
+                <p class="auth-toggle">
+                    Don't have an account? <a href="#" id="authSwitchBtn">Create one</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phone Auth Modal -->
+    <div id="phoneAuthModal" class="modal">
+        <div class="modal-content center-modal">
+            <div class="modal-header">
+                <h2>Login with Phone</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="auth-form-container">
+                <div id="phoneInputSection">
+                    <div class="phone-input-group">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="phoneNumber" placeholder="9876543210" maxlength="10">
+                    </div>
+                    <div id="recaptcha-container"></div>
+                    <button id="sendOTPBtn" class="btn primary-btn w-100 mt-3" disabled>Send One-Time Password</button>
+                </div>
+                <div id="otpSection" style="display: none;">
+                    <p class="text-muted mb-3">Enter the 6-digit code sent to <span id="sentNumber"></span></p>
+                    <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" class="otp-input">
+                    <button id="verifyOTPBtn" class="btn primary-btn w-100 mt-3">Verify & Login</button>
+                    <button id="resendOTPBtn" class="btn text-btn mt-2">Didn't get the code? Resend</button>
+                </div>
+                <p class="auth-toggle mt-3">
+                    Prefer email? <a href="#" id="emailAuthSwitchBtn">Back to email login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="js/app.js"></script>
     <script type="module" src="js/search.js"></script>
 </body>
 </html>
